@@ -1,0 +1,30 @@
+type Query {
+    user(id: ID!): User!
+    ListUser(limit: Int, offset: Int): [User!]!
+}
+
+type Mutation{
+    createUser(input: UserInput!): User!
+    updateUser(id: ID!, input: UserInput!): User!
+    deleteUser(id: ID!): User!
+}
+
+type User {
+    id: ID!
+    name: String!
+    userName: String!
+    followCount: Int!
+    followerCount: Int!
+    serfIntroduction: String!
+    profileImageUrl: String!
+    isFollowing: Boolean!
+    isMySelf: Boolean!
+}
+
+input UserInput {
+    name: String!
+    userName: String!
+    serfIntroduction: String!
+}
+
+

@@ -6,7 +6,6 @@ install:
 	make install_wire
 	make install_mock
 	make install_stringer
-	make install_webp
 
 .PHONY: install_default_tools
 install_default_tools:
@@ -46,3 +45,7 @@ docker_down:
 spanner_cli:
 	# TODO envsのとの切り分けをかんがえる
 	SPANNER_EMULATOR_HOST=localhost:19010 spanner-cli -p journey-local -i local -d local_user
+
+.PHONY: gqlgen
+gqlgen:
+	go run github.com/99designs/gqlgen generate

@@ -1,0 +1,25 @@
+schema:
+  - schema/graphql/*.graphql
+
+exec:
+  filename: pkg/pkg/adapter/gqlgen/generated.go
+  package: gqlgen
+
+model:
+  filename: pkg/adapter/gqlgen/models/models_gen.go
+  package: models
+
+resolver:
+  layout: follow-schema
+  dir: pkg/adapter/gqlgen/resolver
+  package: resolver
+
+autobind:
+
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.ID
+  Upload:
+    model:
+      - github.com/99designs/gqlgen/graphql.Upload
