@@ -1,6 +1,8 @@
 module github.com/t-yamakoshi/24-fresh-backend-v2
 
-go 1.22.5
+go 1.23.0
+
+toolchain go1.23.1
 
 require (
 	github.com/99designs/gqlgen v0.17.57
@@ -8,6 +10,7 @@ require (
 )
 
 require (
+	entgo.io/ent v0.14.1 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
 	github.com/google/uuid v1.6.0 // indirect

@@ -49,3 +49,8 @@ spanner_cli:
 .PHONY: gqlgen
 gqlgen:
 	go run github.com/99designs/gqlgen generate
+
+.PHONY: entgen
+entgen:
+	go run -x -mod=mod entgo.io/ent/cmd/ent generate --target=./pkg/entgen/ ./schema/db/ent
+	

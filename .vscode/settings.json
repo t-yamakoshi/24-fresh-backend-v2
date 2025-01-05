@@ -1,0 +1,8 @@
+{
+  "cSpell.words": ["entgen", "entgo"],
+  "editor.formatOnSave": true,
+  "[go]": {
+    "editor.formatOnSave": false
+  },
+  "go.formatTool": "goimports"
+}
