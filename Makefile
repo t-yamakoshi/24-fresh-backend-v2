@@ -41,11 +41,6 @@ install_stringer:
 docker_down:
 	docker compose down
 
-.PHONY: spanner_cli
-spanner_cli:
-	# TODO envsのとの切り分けをかんがえる
-	SPANNER_EMULATOR_HOST=localhost:19010 spanner-cli -p journey-local -i local -d local_user
-
 .PHONY: gqlgen
 gqlgen:
 	go run github.com/99designs/gqlgen generate

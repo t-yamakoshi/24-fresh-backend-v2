@@ -18,27 +18,49 @@ type UserRepository struct {
 	db *entgen.Client
 }
 
-func NewUserRepository() *IFUserRepository {
-	return UserRepository{}
+type User struct {
+	ID               int
+	Name             string
+	UserName         string
+	FollowCount      int
+	FollowerCount    int
+	SelfIntroduction string
+	ProfileImageUrl  string
+	IsFollowing      bool
+	IsMySelf         bool
+}
+
+
+func NewUserRepository() *UserRepository {
+	return &UserRepository{}
 }
 
 func (r *UserRepository) Get(ctx context.Context, id int) (*entity.User, error) {
-	tx, err := r.db.Begin()
+	tx, err := r.db.Tx(ctx)
 	if err != nil {
 		return nil, err
 	}
 	
-	user, err := tx.User.
-		Query().
-		Where(entgen.ID(id)).
-		Only(ctx)
+	user, err := tx.UserModel.
+		Get(ctx, id)
 	if err != nil {
 		if entgen.IsNotFound(err) {
 			return nil, fmt.Errorf("user not found")
 		}
+		return nil, err
 	}
 	defer tx.Rollback()
-	return nil, nil
+	return &entity.User{
+		Id:               user.ID,
+		Name:             user.Name,
+		UserName:         user.UserName,
+		FollowCount:      user.FollowCount,
+		FollowerCount:    user.FollowerCount,
+		SelfIntroduction: user.SelfIntroduction,
+		ProfileImageUrl:  user.ProfileImageUrl,
+		IsFollowing:      user.IsFollowing,
+		IsMySelf:         user.IsMySelf,
+	}, nil
 }
 
 func (u *User) toUserEntity() *entity.User {
