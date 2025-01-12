@@ -43,9 +43,9 @@ docker_down:
 
 .PHONY: gqlgen
 gqlgen:
-	go run github.com/99designs/gqlgen generate
+	go run -x github.com/99designs/gqlgen generate
 
 .PHONY: entgen
 entgen:
-	go run -x -mod=mod entgo.io/ent/cmd/ent generate --target=./pkg/entgen/ ./schema/db/ent
+	go run -x -mod=mod entgo.io/ent/cmd/ent generate --feature sql/versioned-migration --target=./pkg/adapter/entgen ./schema/db/ent
 	

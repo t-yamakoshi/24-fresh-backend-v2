@@ -14,27 +14,27 @@ import (
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input models.UserInput) (*models.User, error) {
-	return nil, fmt.Errorf("not implemented: CreateUser - createUser")
+	panic(fmt.Errorf("not implemented: CreateUser - createUser"))
 }
 
 // UpdateUser is the resolver for the updateUser field.
 func (r *mutationResolver) UpdateUser(ctx context.Context, id string, input models.UserInput) (*models.User, error) {
-	return nil, fmt.Errorf("not implemented: UpdateUser - updateUser")
+	panic(fmt.Errorf("not implemented: UpdateUser - updateUser"))
 }
 
 // DeleteUser is the resolver for the deleteUser field.
 func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (*models.User, error) {
-	return nil, fmt.Errorf("not implemented: DeleteUser - deleteUser")
+	panic(fmt.Errorf("not implemented: DeleteUser - deleteUser"))
 }
 
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context, id string) (*models.User, error) {
-	return nil, fmt.Errorf("not implemented: User - user")
+	panic(fmt.Errorf("not implemented: User - user"))
 }
 
 // ListUser is the resolver for the ListUser field.
 func (r *queryResolver) ListUser(ctx context.Context, limit *int, offset *int) ([]*models.User, error) {
-	return nil, fmt.Errorf("not implemented: ListUser - listUser")
+	panic(fmt.Errorf("not implemented: ListUser - ListUser"))
 }
 
 // Mutation returns gqlgen.MutationResolver implementation.

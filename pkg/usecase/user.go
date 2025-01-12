@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 
-	"github.com/gostaticanalysis/nilerr"
+
 )
 
 type IFUserUsecase interface {

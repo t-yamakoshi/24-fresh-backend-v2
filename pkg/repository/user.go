@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/entgen"
+	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/entgen"
 	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/entity"
 )
 
@@ -61,6 +61,16 @@ func (r *UserRepository) Get(ctx context.Context, id int) (*entity.User, error) 
 		IsFollowing:      user.IsFollowing,
 		IsMySelf:         user.IsMySelf,
 	}, nil
+}
+
+func (r *UserRepository) calcFollowCount(folloees []*entity.User) int {
+	count := 0
+	for _, u := range folloees {
+		if u.IsFollowing {
+			count++
+		}
+	}
+	return count
 }
 
 func (u *User) toUserEntity() *entity.User {
