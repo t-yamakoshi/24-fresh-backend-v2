@@ -1,22 +1,29 @@
+networks:
+  default:
+    name: sns-server
+    external: true
+
 services:
-  db:
-    image: mysql:5.7
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: mydb
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-    ports:
-      - "13306:3306"
-    volumes:
-      - db:/var/lib/mysql
-  go:
+  mysql:
+    container_name: sns-v2-mysql
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/db/Dockerfile
+    ports:
+      - "127.0.0.1:23306:3306"
+    restart: always
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      - MYSQL_DATABASE=24-fresh
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - TZ=UTC
+    volumes:
+      - sns-db:/var/lib/mysql
+  go:
+    image: golang:latest
+    container_name: sns-v2-go
     ports:
       - "8080:8080"
 
 volumes:
-  db:
+  sns-db:

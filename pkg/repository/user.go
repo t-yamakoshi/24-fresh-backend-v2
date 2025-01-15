@@ -42,7 +42,7 @@ func (r *UserRepository) Get(ctx context.Context, id int) (*entity.User, error) 
 	}
 	
 	user, err := tx.UserModel.
-		Get(ctx, id)
+		Get(ctx, int64(id))
 	if err != nil {
 		if entgen.IsNotFound(err) {
 			return nil, fmt.Errorf("user not found")

@@ -36,11 +36,6 @@ install_mock:
 install_stringer:
 	go install golang.org/x/tools/cmd/stringer@v0.25.0
 
-
-.PHONY: docker_down
-docker_down:
-	docker compose down
-
 .PHONY: gqlgen
 gqlgen:
 	go run -x github.com/99designs/gqlgen generate
@@ -48,4 +43,17 @@ gqlgen:
 .PHONY: entgen
 entgen:
 	go run -x -mod=mod entgo.io/ent/cmd/ent generate --feature sql/versioned-migration --target=./pkg/adapter/entgen ./schema/db/ent
+
+.PHONY: docker_up
+docker_up:
+	docker network create sns-server || true
+	docker compose up -d --build
 	
+.PHONY: docker_down
+docker_down:
+	docker compose down
+
+.PHONY: migrate
+migrate:
+	make entgen
+	go run cmd/migration/main.go
