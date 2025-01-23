@@ -38,7 +38,7 @@ install_stringer:
 
 .PHONY: gqlgen
 gqlgen:
-	go run -x github.com/99designs/gqlgen generate
+	go run -x github.com/99designs/gqlgen generate --verbose
 
 .PHONY: entgen
 entgen:

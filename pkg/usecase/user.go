@@ -3,7 +3,8 @@ package usecase
 import (
 	"context"
 
-
+	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/entity"
+	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/repository"
 )
 
 type IFUserUsecase interface {
@@ -15,16 +16,21 @@ type IFUserUsecase interface {
 }
 
 type UserUsecase struct {
+	userRepository repository.IFUserRepository
 }
 
-func NewUserUsecase() IFUserUsecase {
-	return &UserUsecase{}
+func NewUserUsecase(
+	userRepository *repository.UserRepository,
+) *UserUsecase {
+	return &UserUsecase{
+		userRepository: userRepository,
+	}
 }
 
 var _ IFUserUsecase = (*UserUsecase)(nil)
 
 type User struct {
-	ID               string
+	ID               int
 	Name             string
 	UserName         string
 	FollowCount      int
@@ -65,10 +71,25 @@ func (u UserUsecase) DeleteUser(ctx context.Context, id int) error {
 }
 
 func (u UserUsecase) GetUser(ctx context.Context, id int) (*User, error) {
-	return nil, nil
+	user, err := u.userRepository.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return u.toUsecaseUser(user), nil
 }
 
 func (u UserUsecase) ListUser(ctx context.Context, offset int, limit int) ([]*User, error) {
 	return nil, nil
 }
+
+func (u *UserUsecase) toUsecaseUser(user *entity.User) *User {
+	return &User{
+		ID:               user.Id,
+		Name:             user.Name,
+		UserName:         user.UserName,
+		FollowCount:      user.FollowCount,
+		FollowerCount:    user.FollowerCount,
+		SelfIntroduction: user.SelfIntroduction,
+	}
+}		
 

@@ -8,8 +8,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/gqlgen"
 	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/gqlgen/models"
-	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/pkg/adapter/gqlgen"
 )
 
 // CreateUser is the resolver for the createUser field.
@@ -29,7 +29,11 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (*models.U
 
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context, id string) (*models.User, error) {
-	panic(fmt.Errorf("not implemented: User - user"))
+	user, err := r.userUsecase.GetUser(ctx, id) 
+	if err != nil {
+		return nil, err
+	}
+	return ToUserModel(user), nil
 }
 
 // ListUser is the resolver for the ListUser field.

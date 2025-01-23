@@ -51,21 +51,16 @@ func (r *UserRepository) Get(ctx context.Context, id int) (*entity.User, error) 
 	}
 	defer tx.Rollback()
 	return &entity.User{
-		Id:               user.ID,
+		Id:               int(user.ID),
 		Name:             user.Name,
 		UserName:         user.UserName,
-		FollowCount:      user.FollowCount,
-		FollowerCount:    user.FollowerCount,
 		SelfIntroduction: user.SelfIntroduction,
-		ProfileImageUrl:  user.ProfileImageUrl,
-		IsFollowing:      user.IsFollowing,
-		IsMySelf:         user.IsMySelf,
 	}, nil
 }
 
-func (r *UserRepository) calcFollowCount(folloees []*entity.User) int {
+func (r *UserRepository) calcFollowCount(users []*entity.User) int {
 	count := 0
-	for _, u := range folloees {
+	for _, u := range users{
 		if u.IsFollowing {
 			count++
 		}

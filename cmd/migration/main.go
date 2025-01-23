@@ -5,20 +5,18 @@ import (
 	"log"
 	"os"
 
-	mysql "github.com/go-sql-driver/mysql"
-
-	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/entgen"
+	"github.com/t-yamakoshi/24-fresh-backend-v2/cmd/migration/db"
 )
 
 func main() {
     dsn := "root:@tcp(localhost:23306)/"
-    cfg, err := mysql.ParseDSN(dsn)
+    cfg, err := db.NewConfig(dsn)
     if err != nil {
-        log.Fatalf("failed parsing dsn: %v", err)
+        log.Fatalf("failed creating mysql config: %v", err)
     }
     cfg.ParseTime = true
     cfg.DBName = "24-fresh"
-    client, err := entgen.Open("mysql", cfg.FormatDSN())
+    client, err := db.NewClient(cfg)
     if err != nil {
         log.Fatalf("failed connecting to mysql: %v", err)
     }
