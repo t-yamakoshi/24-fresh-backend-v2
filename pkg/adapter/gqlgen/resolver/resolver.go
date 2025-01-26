@@ -7,5 +7,5 @@ import "github.com/t-yamakoshi/24-fresh-backend-v2/pkg/usecase"
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct{
-	userUsecase usecase.IFUserUsecase
+	UserUsecase usecase.IFUserUsecase
 }

@@ -31,8 +31,12 @@ type User struct {
 }
 
 
-func NewUserRepository() *UserRepository {
-	return &UserRepository{}
+func NewUserRepository(
+	db *entgen.Client,
+) *UserRepository {
+	return &UserRepository{
+		db: db,
+	}
 }
 
 func (r *UserRepository) Get(ctx context.Context, id int64) (*entity.User, error) {

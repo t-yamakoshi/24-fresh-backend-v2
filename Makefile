@@ -57,3 +57,7 @@ docker_down:
 migrate:
 	make entgen
 	go run cmd/migration/main.go
+
+.PHONY: run_api
+run_api:
+	go run ./main.go 
