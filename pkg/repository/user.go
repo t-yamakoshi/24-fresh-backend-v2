@@ -9,7 +9,7 @@ import (
 )
 
 type IFUserRepository interface {
-	Get(ctx context.Context, id int) (*entity.User, error)
+	Get(ctx context.Context, id int64) (*entity.User, error)
 }
 
 var _ IFUserRepository = (*UserRepository)(nil)
@@ -19,7 +19,7 @@ type UserRepository struct {
 }
 
 type User struct {
-	ID               int
+	ID               int64
 	Name             string
 	UserName         string
 	FollowCount      int
@@ -35,14 +35,14 @@ func NewUserRepository() *UserRepository {
 	return &UserRepository{}
 }
 
-func (r *UserRepository) Get(ctx context.Context, id int) (*entity.User, error) {
+func (r *UserRepository) Get(ctx context.Context, id int64) (*entity.User, error) {
 	tx, err := r.db.Tx(ctx)
 	if err != nil {
 		return nil, err
 	}
 	
 	user, err := tx.UserModel.
-		Get(ctx, int64(id))
+		Get(ctx, id)
 	if err != nil {
 		if entgen.IsNotFound(err) {
 			return nil, fmt.Errorf("user not found")
@@ -51,7 +51,7 @@ func (r *UserRepository) Get(ctx context.Context, id int) (*entity.User, error) 
 	}
 	defer tx.Rollback()
 	return &entity.User{
-		Id:               int(user.ID),
+		Id:               user.ID,
 		Name:             user.Name,
 		UserName:         user.UserName,
 		SelfIntroduction: user.SelfIntroduction,

@@ -7,12 +7,12 @@ import (
 
 func ToUserModel(user *usecase.User) *models.User {
 	return &models.User{
-		ID:               user.ID,
-		Name:             user.Name,
-		UserName:         user.UserName,
-		FollowCount:      user.FollowCount,
-		FollowerCount:    user.FollowerCount,
-		IsFollowing:      user.IsFollowing,
-		IsMySelf:         user.IsMySelf,
+		ID:            user.Id,
+		Name:          user.Name,
+		UserName:      user.UserName,
+		FollowCount:   user.FollowCount,
+		FollowerCount: user.FollowerCount,
+		IsFollowing:   user.IsFollowing,
+		IsMySelf:      user.IsMySelf,
 	}
 }

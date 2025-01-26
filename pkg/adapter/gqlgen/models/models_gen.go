@@ -2,6 +2,10 @@
 
 package models
 
+import (
+	"github.com/99designs/gqlgen/graphql"
+)
+
 type Mutation struct {
 }
 
@@ -9,7 +13,7 @@ type Query struct {
 }
 
 type User struct {
-	ID               string `json:"id"`
+	ID               int64  `json:"id"`
 	Name             string `json:"name"`
 	UserName         string `json:"userName"`
 	FollowCount      int    `json:"followCount"`
@@ -21,7 +25,8 @@ type User struct {
 }
 
 type UserInput struct {
-	Name             string `json:"name"`
-	UserName         string `json:"userName"`
-	SerfIntroduction string `json:"serfIntroduction"`
+	Name             string         `json:"name"`
+	UserName         string         `json:"userName"`
+	SerfIntroduction string         `json:"serfIntroduction"`
+	ProfileImage     graphql.Upload `json:"profileImage"`
 }

@@ -20,6 +20,10 @@ models:
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.ID
+  IntID:
+    model:
+      - github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/gqlgentype.Int64
   Upload:
     model:
       - github.com/99designs/gqlgen/graphql.Upload
+  

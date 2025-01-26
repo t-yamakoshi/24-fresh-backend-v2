@@ -10,8 +10,8 @@ import (
 type IFUserUsecase interface {
 	CreateUser(ctx context.Context, input *CreateUserInput) (*User, error)
 	UpdateUser(ctx context.Context, input *UpdateUserInput) (*User, error)
-	DeleteUser(ctx context.Context, id int) error
-	GetUser(ctx context.Context, id int) (*User, error)
+	DeleteUser(ctx context.Context, id int64) error
+	GetUser(ctx context.Context, id int64) (*User, error)
 	ListUser(ctx context.Context, offset, limit int) ([]*User, error)
 }
 
@@ -30,7 +30,7 @@ func NewUserUsecase(
 var _ IFUserUsecase = (*UserUsecase)(nil)
 
 type User struct {
-	ID               int
+	Id              int64
 	Name             string
 	UserName         string
 	FollowCount      int
@@ -66,11 +66,11 @@ func (u UserUsecase) UpdateUser(ctx context.Context, input *UpdateUserInput) (*U
 	return nil, nil
 }
 
-func (u UserUsecase) DeleteUser(ctx context.Context, id int) error {
+func (u UserUsecase) DeleteUser(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (u UserUsecase) GetUser(ctx context.Context, id int) (*User, error) {
+func (u UserUsecase) GetUser(ctx context.Context, id int64) (*User, error) {
 	user, err := u.userRepository.Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (u UserUsecase) ListUser(ctx context.Context, offset int, limit int) ([]*Us
 
 func (u *UserUsecase) toUsecaseUser(user *entity.User) *User {
 	return &User{
-		ID:               user.Id,
+		Id:               int64(user.Id),
 		Name:             user.Name,
 		UserName:         user.UserName,
 		FollowCount:      user.FollowCount,
