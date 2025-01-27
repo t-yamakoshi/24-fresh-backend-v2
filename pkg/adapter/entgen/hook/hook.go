@@ -9,6 +9,18 @@ import (
 	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/entgen"
 )
 
+// The FollowsModelFunc type is an adapter to allow the use of ordinary
+// function as FollowsModel mutator.
+type FollowsModelFunc func(context.Context, *entgen.FollowsModelMutation) (entgen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FollowsModelFunc) Mutate(ctx context.Context, m entgen.Mutation) (entgen.Value, error) {
+	if mv, ok := m.(*entgen.FollowsModelMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *entgen.FollowsModelMutation", m)
+}
+
 // The UserModelFunc type is an adapter to allow the use of ordinary
 // function as UserModel mutator.
 type UserModelFunc func(context.Context, *entgen.UserModelMutation) (entgen.Value, error)

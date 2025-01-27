@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/entgen/followsmodel"
 	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/entgen/predicate"
 	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/entgen/usermodel"
 )
@@ -178,9 +179,81 @@ func (umu *UserModelUpdate) SetNillableEmail(s *string) *UserModelUpdate {
 	return umu
 }
 
+// AddFollowerIDs adds the "followers" edge to the FollowsModel entity by IDs.
+func (umu *UserModelUpdate) AddFollowerIDs(ids ...int) *UserModelUpdate {
+	umu.mutation.AddFollowerIDs(ids...)
+	return umu
+}
+
+// AddFollowers adds the "followers" edges to the FollowsModel entity.
+func (umu *UserModelUpdate) AddFollowers(f ...*FollowsModel) *UserModelUpdate {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return umu.AddFollowerIDs(ids...)
+}
+
+// AddFolloweeIDs adds the "followees" edge to the FollowsModel entity by IDs.
+func (umu *UserModelUpdate) AddFolloweeIDs(ids ...int) *UserModelUpdate {
+	umu.mutation.AddFolloweeIDs(ids...)
+	return umu
+}
+
+// AddFollowees adds the "followees" edges to the FollowsModel entity.
+func (umu *UserModelUpdate) AddFollowees(f ...*FollowsModel) *UserModelUpdate {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return umu.AddFolloweeIDs(ids...)
+}
+
 // Mutation returns the UserModelMutation object of the builder.
 func (umu *UserModelUpdate) Mutation() *UserModelMutation {
 	return umu.mutation
+}
+
+// ClearFollowers clears all "followers" edges to the FollowsModel entity.
+func (umu *UserModelUpdate) ClearFollowers() *UserModelUpdate {
+	umu.mutation.ClearFollowers()
+	return umu
+}
+
+// RemoveFollowerIDs removes the "followers" edge to FollowsModel entities by IDs.
+func (umu *UserModelUpdate) RemoveFollowerIDs(ids ...int) *UserModelUpdate {
+	umu.mutation.RemoveFollowerIDs(ids...)
+	return umu
+}
+
+// RemoveFollowers removes "followers" edges to FollowsModel entities.
+func (umu *UserModelUpdate) RemoveFollowers(f ...*FollowsModel) *UserModelUpdate {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return umu.RemoveFollowerIDs(ids...)
+}
+
+// ClearFollowees clears all "followees" edges to the FollowsModel entity.
+func (umu *UserModelUpdate) ClearFollowees() *UserModelUpdate {
+	umu.mutation.ClearFollowees()
+	return umu
+}
+
+// RemoveFolloweeIDs removes the "followees" edge to FollowsModel entities by IDs.
+func (umu *UserModelUpdate) RemoveFolloweeIDs(ids ...int) *UserModelUpdate {
+	umu.mutation.RemoveFolloweeIDs(ids...)
+	return umu
+}
+
+// RemoveFollowees removes "followees" edges to FollowsModel entities.
+func (umu *UserModelUpdate) RemoveFollowees(f ...*FollowsModel) *UserModelUpdate {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return umu.RemoveFolloweeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -273,6 +346,96 @@ func (umu *UserModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := umu.mutation.Email(); ok {
 		_spec.SetField(usermodel.FieldEmail, field.TypeString, value)
+	}
+	if umu.mutation.FollowersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usermodel.FollowersTable,
+			Columns: []string{usermodel.FollowersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(followsmodel.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := umu.mutation.RemovedFollowersIDs(); len(nodes) > 0 && !umu.mutation.FollowersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usermodel.FollowersTable,
+			Columns: []string{usermodel.FollowersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(followsmodel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := umu.mutation.FollowersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usermodel.FollowersTable,
+			Columns: []string{usermodel.FollowersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(followsmodel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if umu.mutation.FolloweesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usermodel.FolloweesTable,
+			Columns: []string{usermodel.FolloweesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(followsmodel.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := umu.mutation.RemovedFolloweesIDs(); len(nodes) > 0 && !umu.mutation.FolloweesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usermodel.FolloweesTable,
+			Columns: []string{usermodel.FolloweesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(followsmodel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := umu.mutation.FolloweesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usermodel.FolloweesTable,
+			Columns: []string{usermodel.FolloweesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(followsmodel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, umu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -444,9 +607,81 @@ func (umuo *UserModelUpdateOne) SetNillableEmail(s *string) *UserModelUpdateOne 
 	return umuo
 }
 
+// AddFollowerIDs adds the "followers" edge to the FollowsModel entity by IDs.
+func (umuo *UserModelUpdateOne) AddFollowerIDs(ids ...int) *UserModelUpdateOne {
+	umuo.mutation.AddFollowerIDs(ids...)
+	return umuo
+}
+
+// AddFollowers adds the "followers" edges to the FollowsModel entity.
+func (umuo *UserModelUpdateOne) AddFollowers(f ...*FollowsModel) *UserModelUpdateOne {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return umuo.AddFollowerIDs(ids...)
+}
+
+// AddFolloweeIDs adds the "followees" edge to the FollowsModel entity by IDs.
+func (umuo *UserModelUpdateOne) AddFolloweeIDs(ids ...int) *UserModelUpdateOne {
+	umuo.mutation.AddFolloweeIDs(ids...)
+	return umuo
+}
+
+// AddFollowees adds the "followees" edges to the FollowsModel entity.
+func (umuo *UserModelUpdateOne) AddFollowees(f ...*FollowsModel) *UserModelUpdateOne {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return umuo.AddFolloweeIDs(ids...)
+}
+
 // Mutation returns the UserModelMutation object of the builder.
 func (umuo *UserModelUpdateOne) Mutation() *UserModelMutation {
 	return umuo.mutation
+}
+
+// ClearFollowers clears all "followers" edges to the FollowsModel entity.
+func (umuo *UserModelUpdateOne) ClearFollowers() *UserModelUpdateOne {
+	umuo.mutation.ClearFollowers()
+	return umuo
+}
+
+// RemoveFollowerIDs removes the "followers" edge to FollowsModel entities by IDs.
+func (umuo *UserModelUpdateOne) RemoveFollowerIDs(ids ...int) *UserModelUpdateOne {
+	umuo.mutation.RemoveFollowerIDs(ids...)
+	return umuo
+}
+
+// RemoveFollowers removes "followers" edges to FollowsModel entities.
+func (umuo *UserModelUpdateOne) RemoveFollowers(f ...*FollowsModel) *UserModelUpdateOne {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return umuo.RemoveFollowerIDs(ids...)
+}
+
+// ClearFollowees clears all "followees" edges to the FollowsModel entity.
+func (umuo *UserModelUpdateOne) ClearFollowees() *UserModelUpdateOne {
+	umuo.mutation.ClearFollowees()
+	return umuo
+}
+
+// RemoveFolloweeIDs removes the "followees" edge to FollowsModel entities by IDs.
+func (umuo *UserModelUpdateOne) RemoveFolloweeIDs(ids ...int) *UserModelUpdateOne {
+	umuo.mutation.RemoveFolloweeIDs(ids...)
+	return umuo
+}
+
+// RemoveFollowees removes "followees" edges to FollowsModel entities.
+func (umuo *UserModelUpdateOne) RemoveFollowees(f ...*FollowsModel) *UserModelUpdateOne {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return umuo.RemoveFolloweeIDs(ids...)
 }
 
 // Where appends a list predicates to the UserModelUpdate builder.
@@ -569,6 +804,96 @@ func (umuo *UserModelUpdateOne) sqlSave(ctx context.Context) (_node *UserModel, 
 	}
 	if value, ok := umuo.mutation.Email(); ok {
 		_spec.SetField(usermodel.FieldEmail, field.TypeString, value)
+	}
+	if umuo.mutation.FollowersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usermodel.FollowersTable,
+			Columns: []string{usermodel.FollowersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(followsmodel.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := umuo.mutation.RemovedFollowersIDs(); len(nodes) > 0 && !umuo.mutation.FollowersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usermodel.FollowersTable,
+			Columns: []string{usermodel.FollowersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(followsmodel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := umuo.mutation.FollowersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usermodel.FollowersTable,
+			Columns: []string{usermodel.FollowersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(followsmodel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if umuo.mutation.FolloweesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usermodel.FolloweesTable,
+			Columns: []string{usermodel.FolloweesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(followsmodel.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := umuo.mutation.RemovedFolloweesIDs(); len(nodes) > 0 && !umuo.mutation.FolloweesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usermodel.FolloweesTable,
+			Columns: []string{usermodel.FolloweesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(followsmodel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := umuo.mutation.FolloweesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usermodel.FolloweesTable,
+			Columns: []string{usermodel.FolloweesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(followsmodel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &UserModel{config: umuo.config}
 	_spec.Assign = _node.assignValues

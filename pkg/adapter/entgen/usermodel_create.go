@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/entgen/followsmodel"
 	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/entgen/usermodel"
 )
 
@@ -124,6 +125,36 @@ func (umc *UserModelCreate) SetEmail(s string) *UserModelCreate {
 func (umc *UserModelCreate) SetID(i int64) *UserModelCreate {
 	umc.mutation.SetID(i)
 	return umc
+}
+
+// AddFollowerIDs adds the "followers" edge to the FollowsModel entity by IDs.
+func (umc *UserModelCreate) AddFollowerIDs(ids ...int) *UserModelCreate {
+	umc.mutation.AddFollowerIDs(ids...)
+	return umc
+}
+
+// AddFollowers adds the "followers" edges to the FollowsModel entity.
+func (umc *UserModelCreate) AddFollowers(f ...*FollowsModel) *UserModelCreate {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return umc.AddFollowerIDs(ids...)
+}
+
+// AddFolloweeIDs adds the "followees" edge to the FollowsModel entity by IDs.
+func (umc *UserModelCreate) AddFolloweeIDs(ids ...int) *UserModelCreate {
+	umc.mutation.AddFolloweeIDs(ids...)
+	return umc
+}
+
+// AddFollowees adds the "followees" edges to the FollowsModel entity.
+func (umc *UserModelCreate) AddFollowees(f ...*FollowsModel) *UserModelCreate {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return umc.AddFolloweeIDs(ids...)
 }
 
 // Mutation returns the UserModelMutation object of the builder.
@@ -256,6 +287,38 @@ func (umc *UserModelCreate) createSpec() (*UserModel, *sqlgraph.CreateSpec) {
 	if value, ok := umc.mutation.Email(); ok {
 		_spec.SetField(usermodel.FieldEmail, field.TypeString, value)
 		_node.Email = value
+	}
+	if nodes := umc.mutation.FollowersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usermodel.FollowersTable,
+			Columns: []string{usermodel.FollowersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(followsmodel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := umc.mutation.FolloweesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usermodel.FolloweesTable,
+			Columns: []string{usermodel.FolloweesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(followsmodel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

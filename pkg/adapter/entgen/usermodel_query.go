@@ -4,6 +4,7 @@ package entgen
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -11,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/entgen/followsmodel"
 	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/entgen/predicate"
 	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/entgen/usermodel"
 )
@@ -18,10 +20,12 @@ import (
 // UserModelQuery is the builder for querying UserModel entities.
 type UserModelQuery struct {
 	config
-	ctx        *QueryContext
-	order      []usermodel.OrderOption
-	inters     []Interceptor
-	predicates []predicate.UserModel
+	ctx           *QueryContext
+	order         []usermodel.OrderOption
+	inters        []Interceptor
+	predicates    []predicate.UserModel
+	withFollowers *FollowsModelQuery
+	withFollowees *FollowsModelQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +60,50 @@ func (umq *UserModelQuery) Unique(unique bool) *UserModelQuery {
 func (umq *UserModelQuery) Order(o ...usermodel.OrderOption) *UserModelQuery {
 	umq.order = append(umq.order, o...)
 	return umq
+}
+
+// QueryFollowers chains the current query on the "followers" edge.
+func (umq *UserModelQuery) QueryFollowers() *FollowsModelQuery {
+	query := (&FollowsModelClient{config: umq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := umq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := umq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usermodel.Table, usermodel.FieldID, selector),
+			sqlgraph.To(followsmodel.Table, followsmodel.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, usermodel.FollowersTable, usermodel.FollowersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(umq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFollowees chains the current query on the "followees" edge.
+func (umq *UserModelQuery) QueryFollowees() *FollowsModelQuery {
+	query := (&FollowsModelClient{config: umq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := umq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := umq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usermodel.Table, usermodel.FieldID, selector),
+			sqlgraph.To(followsmodel.Table, followsmodel.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, usermodel.FolloweesTable, usermodel.FolloweesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(umq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first UserModel entity from the query.
@@ -245,15 +293,39 @@ func (umq *UserModelQuery) Clone() *UserModelQuery {
 		return nil
 	}
 	return &UserModelQuery{
-		config:     umq.config,
-		ctx:        umq.ctx.Clone(),
-		order:      append([]usermodel.OrderOption{}, umq.order...),
-		inters:     append([]Interceptor{}, umq.inters...),
-		predicates: append([]predicate.UserModel{}, umq.predicates...),
+		config:        umq.config,
+		ctx:           umq.ctx.Clone(),
+		order:         append([]usermodel.OrderOption{}, umq.order...),
+		inters:        append([]Interceptor{}, umq.inters...),
+		predicates:    append([]predicate.UserModel{}, umq.predicates...),
+		withFollowers: umq.withFollowers.Clone(),
+		withFollowees: umq.withFollowees.Clone(),
 		// clone intermediate query.
 		sql:  umq.sql.Clone(),
 		path: umq.path,
 	}
+}
+
+// WithFollowers tells the query-builder to eager-load the nodes that are connected to
+// the "followers" edge. The optional arguments are used to configure the query builder of the edge.
+func (umq *UserModelQuery) WithFollowers(opts ...func(*FollowsModelQuery)) *UserModelQuery {
+	query := (&FollowsModelClient{config: umq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	umq.withFollowers = query
+	return umq
+}
+
+// WithFollowees tells the query-builder to eager-load the nodes that are connected to
+// the "followees" edge. The optional arguments are used to configure the query builder of the edge.
+func (umq *UserModelQuery) WithFollowees(opts ...func(*FollowsModelQuery)) *UserModelQuery {
+	query := (&FollowsModelClient{config: umq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	umq.withFollowees = query
+	return umq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -332,8 +404,12 @@ func (umq *UserModelQuery) prepareQuery(ctx context.Context) error {
 
 func (umq *UserModelQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*UserModel, error) {
 	var (
-		nodes = []*UserModel{}
-		_spec = umq.querySpec()
+		nodes       = []*UserModel{}
+		_spec       = umq.querySpec()
+		loadedTypes = [2]bool{
+			umq.withFollowers != nil,
+			umq.withFollowees != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*UserModel).scanValues(nil, columns)
@@ -341,6 +417,7 @@ func (umq *UserModelQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*U
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &UserModel{config: umq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +429,82 @@ func (umq *UserModelQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*U
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := umq.withFollowers; query != nil {
+		if err := umq.loadFollowers(ctx, query, nodes,
+			func(n *UserModel) { n.Edges.Followers = []*FollowsModel{} },
+			func(n *UserModel, e *FollowsModel) { n.Edges.Followers = append(n.Edges.Followers, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := umq.withFollowees; query != nil {
+		if err := umq.loadFollowees(ctx, query, nodes,
+			func(n *UserModel) { n.Edges.Followees = []*FollowsModel{} },
+			func(n *UserModel, e *FollowsModel) { n.Edges.Followees = append(n.Edges.Followees, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (umq *UserModelQuery) loadFollowers(ctx context.Context, query *FollowsModelQuery, nodes []*UserModel, init func(*UserModel), assign func(*UserModel, *FollowsModel)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*UserModel)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(followsmodel.FieldFollowerUserID)
+	}
+	query.Where(predicate.FollowsModel(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(usermodel.FollowersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.FollowerUserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "follower_user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (umq *UserModelQuery) loadFollowees(ctx context.Context, query *FollowsModelQuery, nodes []*UserModel, init func(*UserModel), assign func(*UserModel, *FollowsModel)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*UserModel)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(followsmodel.FieldFolloweeUserID)
+	}
+	query.Where(predicate.FollowsModel(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(usermodel.FolloweesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.FolloweeUserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "followee_user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (umq *UserModelQuery) sqlCount(ctx context.Context) (int, error) {

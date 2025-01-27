@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -33,8 +34,26 @@ const (
 	FieldProfileImage = "profile_image"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
+	// EdgeFollowers holds the string denoting the followers edge name in mutations.
+	EdgeFollowers = "followers"
+	// EdgeFollowees holds the string denoting the followees edge name in mutations.
+	EdgeFollowees = "followees"
 	// Table holds the table name of the usermodel in the database.
 	Table = "user_models"
+	// FollowersTable is the table that holds the followers relation/edge.
+	FollowersTable = "follows_models"
+	// FollowersInverseTable is the table name for the FollowsModel entity.
+	// It exists in this package in order to avoid circular dependency with the "followsmodel" package.
+	FollowersInverseTable = "follows_models"
+	// FollowersColumn is the table column denoting the followers relation/edge.
+	FollowersColumn = "follower_user_id"
+	// FolloweesTable is the table that holds the followees relation/edge.
+	FolloweesTable = "follows_models"
+	// FolloweesInverseTable is the table name for the FollowsModel entity.
+	// It exists in this package in order to avoid circular dependency with the "followsmodel" package.
+	FolloweesInverseTable = "follows_models"
+	// FolloweesColumn is the table column denoting the followees relation/edge.
+	FolloweesColumn = "followee_user_id"
 )
 
 // Columns holds all SQL columns for usermodel fields.
@@ -147,4 +166,46 @@ func ByProfileImage(opts ...sql.OrderTermOption) OrderOption {
 // ByEmail orders the results by the email field.
 func ByEmail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEmail, opts...).ToFunc()
+}
+
+// ByFollowersCount orders the results by followers count.
+func ByFollowersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFollowersStep(), opts...)
+	}
+}
+
+// ByFollowers orders the results by followers terms.
+func ByFollowers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFollowersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByFolloweesCount orders the results by followees count.
+func ByFolloweesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFolloweesStep(), opts...)
+	}
+}
+
+// ByFollowees orders the results by followees terms.
+func ByFollowees(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFolloweesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newFollowersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FollowersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FollowersTable, FollowersColumn),
+	)
+}
+func newFolloweesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FolloweesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FolloweesTable, FolloweesColumn),
+	)
 }

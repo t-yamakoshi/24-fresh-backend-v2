@@ -55,7 +55,6 @@ docker_down:
 
 .PHONY: migrate
 migrate:
-	make entgen
 	go run cmd/migration/main.go
 
 .PHONY: run_api

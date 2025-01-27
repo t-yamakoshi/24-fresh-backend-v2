@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/entgen/predicate"
 )
 
@@ -677,6 +678,52 @@ func EmailEqualFold(v string) predicate.UserModel {
 // EmailContainsFold applies the ContainsFold predicate on the "email" field.
 func EmailContainsFold(v string) predicate.UserModel {
 	return predicate.UserModel(sql.FieldContainsFold(FieldEmail, v))
+}
+
+// HasFollowers applies the HasEdge predicate on the "followers" edge.
+func HasFollowers() predicate.UserModel {
+	return predicate.UserModel(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FollowersTable, FollowersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFollowersWith applies the HasEdge predicate on the "followers" edge with a given conditions (other predicates).
+func HasFollowersWith(preds ...predicate.FollowsModel) predicate.UserModel {
+	return predicate.UserModel(func(s *sql.Selector) {
+		step := newFollowersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFollowees applies the HasEdge predicate on the "followees" edge.
+func HasFollowees() predicate.UserModel {
+	return predicate.UserModel(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FolloweesTable, FolloweesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFolloweesWith applies the HasEdge predicate on the "followees" edge with a given conditions (other predicates).
+func HasFolloweesWith(preds ...predicate.FollowsModel) predicate.UserModel {
+	return predicate.UserModel(func(s *sql.Selector) {
+		step := newFolloweesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

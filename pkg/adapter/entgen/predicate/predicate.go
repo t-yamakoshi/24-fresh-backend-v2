@@ -6,5 +6,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// FollowsModel is the predicate function for followsmodel builders.
+type FollowsModel func(*sql.Selector)
+
 // UserModel is the predicate function for usermodel builders.
 type UserModel func(*sql.Selector)

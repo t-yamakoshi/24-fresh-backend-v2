@@ -11,6 +11,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/entgen/followsmodel"
 	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/entgen/predicate"
 	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/entgen/usermodel"
 )
@@ -24,8 +25,667 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeUserModel = "UserModel"
+	TypeFollowsModel = "FollowsModel"
+	TypeUserModel    = "UserModel"
 )
+
+// FollowsModelMutation represents an operation that mutates the FollowsModel nodes in the graph.
+type FollowsModelMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *int
+	created_at      *time.Time
+	updated_at      *time.Time
+	clearedFields   map[string]struct{}
+	follower        *int64
+	clearedfollower bool
+	followee        *int64
+	clearedfollowee bool
+	done            bool
+	oldValue        func(context.Context) (*FollowsModel, error)
+	predicates      []predicate.FollowsModel
+}
+
+var _ ent.Mutation = (*FollowsModelMutation)(nil)
+
+// followsmodelOption allows management of the mutation configuration using functional options.
+type followsmodelOption func(*FollowsModelMutation)
+
+// newFollowsModelMutation creates new mutation for the FollowsModel entity.
+func newFollowsModelMutation(c config, op Op, opts ...followsmodelOption) *FollowsModelMutation {
+	m := &FollowsModelMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFollowsModel,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFollowsModelID sets the ID field of the mutation.
+func withFollowsModelID(id int) followsmodelOption {
+	return func(m *FollowsModelMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FollowsModel
+		)
+		m.oldValue = func(ctx context.Context) (*FollowsModel, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FollowsModel.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFollowsModel sets the old FollowsModel of the mutation.
+func withFollowsModel(node *FollowsModel) followsmodelOption {
+	return func(m *FollowsModelMutation) {
+		m.oldValue = func(context.Context) (*FollowsModel, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FollowsModelMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FollowsModelMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("entgen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FollowsModelMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FollowsModelMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FollowsModel.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *FollowsModelMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *FollowsModelMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the FollowsModel entity.
+// If the FollowsModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FollowsModelMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ClearCreatedAt clears the value of the "created_at" field.
+func (m *FollowsModelMutation) ClearCreatedAt() {
+	m.created_at = nil
+	m.clearedFields[followsmodel.FieldCreatedAt] = struct{}{}
+}
+
+// CreatedAtCleared returns if the "created_at" field was cleared in this mutation.
+func (m *FollowsModelMutation) CreatedAtCleared() bool {
+	_, ok := m.clearedFields[followsmodel.FieldCreatedAt]
+	return ok
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *FollowsModelMutation) ResetCreatedAt() {
+	m.created_at = nil
+	delete(m.clearedFields, followsmodel.FieldCreatedAt)
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *FollowsModelMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *FollowsModelMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the FollowsModel entity.
+// If the FollowsModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FollowsModelMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *FollowsModelMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[followsmodel.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *FollowsModelMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[followsmodel.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *FollowsModelMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, followsmodel.FieldUpdatedAt)
+}
+
+// SetFollowerUserID sets the "follower_user_id" field.
+func (m *FollowsModelMutation) SetFollowerUserID(i int64) {
+	m.follower = &i
+}
+
+// FollowerUserID returns the value of the "follower_user_id" field in the mutation.
+func (m *FollowsModelMutation) FollowerUserID() (r int64, exists bool) {
+	v := m.follower
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFollowerUserID returns the old "follower_user_id" field's value of the FollowsModel entity.
+// If the FollowsModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FollowsModelMutation) OldFollowerUserID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFollowerUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFollowerUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFollowerUserID: %w", err)
+	}
+	return oldValue.FollowerUserID, nil
+}
+
+// ResetFollowerUserID resets all changes to the "follower_user_id" field.
+func (m *FollowsModelMutation) ResetFollowerUserID() {
+	m.follower = nil
+}
+
+// SetFolloweeUserID sets the "followee_user_id" field.
+func (m *FollowsModelMutation) SetFolloweeUserID(i int64) {
+	m.followee = &i
+}
+
+// FolloweeUserID returns the value of the "followee_user_id" field in the mutation.
+func (m *FollowsModelMutation) FolloweeUserID() (r int64, exists bool) {
+	v := m.followee
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFolloweeUserID returns the old "followee_user_id" field's value of the FollowsModel entity.
+// If the FollowsModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FollowsModelMutation) OldFolloweeUserID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFolloweeUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFolloweeUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFolloweeUserID: %w", err)
+	}
+	return oldValue.FolloweeUserID, nil
+}
+
+// ResetFolloweeUserID resets all changes to the "followee_user_id" field.
+func (m *FollowsModelMutation) ResetFolloweeUserID() {
+	m.followee = nil
+}
+
+// SetFollowerID sets the "follower" edge to the UserModel entity by id.
+func (m *FollowsModelMutation) SetFollowerID(id int64) {
+	m.follower = &id
+}
+
+// ClearFollower clears the "follower" edge to the UserModel entity.
+func (m *FollowsModelMutation) ClearFollower() {
+	m.clearedfollower = true
+	m.clearedFields[followsmodel.FieldFollowerUserID] = struct{}{}
+}
+
+// FollowerCleared reports if the "follower" edge to the UserModel entity was cleared.
+func (m *FollowsModelMutation) FollowerCleared() bool {
+	return m.clearedfollower
+}
+
+// FollowerID returns the "follower" edge ID in the mutation.
+func (m *FollowsModelMutation) FollowerID() (id int64, exists bool) {
+	if m.follower != nil {
+		return *m.follower, true
+	}
+	return
+}
+
+// FollowerIDs returns the "follower" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// FollowerID instead. It exists only for internal usage by the builders.
+func (m *FollowsModelMutation) FollowerIDs() (ids []int64) {
+	if id := m.follower; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetFollower resets all changes to the "follower" edge.
+func (m *FollowsModelMutation) ResetFollower() {
+	m.follower = nil
+	m.clearedfollower = false
+}
+
+// SetFolloweeID sets the "followee" edge to the UserModel entity by id.
+func (m *FollowsModelMutation) SetFolloweeID(id int64) {
+	m.followee = &id
+}
+
+// ClearFollowee clears the "followee" edge to the UserModel entity.
+func (m *FollowsModelMutation) ClearFollowee() {
+	m.clearedfollowee = true
+	m.clearedFields[followsmodel.FieldFolloweeUserID] = struct{}{}
+}
+
+// FolloweeCleared reports if the "followee" edge to the UserModel entity was cleared.
+func (m *FollowsModelMutation) FolloweeCleared() bool {
+	return m.clearedfollowee
+}
+
+// FolloweeID returns the "followee" edge ID in the mutation.
+func (m *FollowsModelMutation) FolloweeID() (id int64, exists bool) {
+	if m.followee != nil {
+		return *m.followee, true
+	}
+	return
+}
+
+// FolloweeIDs returns the "followee" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// FolloweeID instead. It exists only for internal usage by the builders.
+func (m *FollowsModelMutation) FolloweeIDs() (ids []int64) {
+	if id := m.followee; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetFollowee resets all changes to the "followee" edge.
+func (m *FollowsModelMutation) ResetFollowee() {
+	m.followee = nil
+	m.clearedfollowee = false
+}
+
+// Where appends a list predicates to the FollowsModelMutation builder.
+func (m *FollowsModelMutation) Where(ps ...predicate.FollowsModel) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FollowsModelMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FollowsModelMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FollowsModel, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FollowsModelMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FollowsModelMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FollowsModel).
+func (m *FollowsModelMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FollowsModelMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.created_at != nil {
+		fields = append(fields, followsmodel.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, followsmodel.FieldUpdatedAt)
+	}
+	if m.follower != nil {
+		fields = append(fields, followsmodel.FieldFollowerUserID)
+	}
+	if m.followee != nil {
+		fields = append(fields, followsmodel.FieldFolloweeUserID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FollowsModelMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case followsmodel.FieldCreatedAt:
+		return m.CreatedAt()
+	case followsmodel.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case followsmodel.FieldFollowerUserID:
+		return m.FollowerUserID()
+	case followsmodel.FieldFolloweeUserID:
+		return m.FolloweeUserID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FollowsModelMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case followsmodel.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case followsmodel.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case followsmodel.FieldFollowerUserID:
+		return m.OldFollowerUserID(ctx)
+	case followsmodel.FieldFolloweeUserID:
+		return m.OldFolloweeUserID(ctx)
+	}
+	return nil, fmt.Errorf("unknown FollowsModel field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FollowsModelMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case followsmodel.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case followsmodel.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case followsmodel.FieldFollowerUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFollowerUserID(v)
+		return nil
+	case followsmodel.FieldFolloweeUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFolloweeUserID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FollowsModel field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FollowsModelMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FollowsModelMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FollowsModelMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown FollowsModel numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FollowsModelMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(followsmodel.FieldCreatedAt) {
+		fields = append(fields, followsmodel.FieldCreatedAt)
+	}
+	if m.FieldCleared(followsmodel.FieldUpdatedAt) {
+		fields = append(fields, followsmodel.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FollowsModelMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FollowsModelMutation) ClearField(name string) error {
+	switch name {
+	case followsmodel.FieldCreatedAt:
+		m.ClearCreatedAt()
+		return nil
+	case followsmodel.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown FollowsModel nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FollowsModelMutation) ResetField(name string) error {
+	switch name {
+	case followsmodel.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case followsmodel.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case followsmodel.FieldFollowerUserID:
+		m.ResetFollowerUserID()
+		return nil
+	case followsmodel.FieldFolloweeUserID:
+		m.ResetFolloweeUserID()
+		return nil
+	}
+	return fmt.Errorf("unknown FollowsModel field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FollowsModelMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.follower != nil {
+		edges = append(edges, followsmodel.EdgeFollower)
+	}
+	if m.followee != nil {
+		edges = append(edges, followsmodel.EdgeFollowee)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FollowsModelMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case followsmodel.EdgeFollower:
+		if id := m.follower; id != nil {
+			return []ent.Value{*id}
+		}
+	case followsmodel.EdgeFollowee:
+		if id := m.followee; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FollowsModelMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FollowsModelMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FollowsModelMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedfollower {
+		edges = append(edges, followsmodel.EdgeFollower)
+	}
+	if m.clearedfollowee {
+		edges = append(edges, followsmodel.EdgeFollowee)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FollowsModelMutation) EdgeCleared(name string) bool {
+	switch name {
+	case followsmodel.EdgeFollower:
+		return m.clearedfollower
+	case followsmodel.EdgeFollowee:
+		return m.clearedfollowee
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FollowsModelMutation) ClearEdge(name string) error {
+	switch name {
+	case followsmodel.EdgeFollower:
+		m.ClearFollower()
+		return nil
+	case followsmodel.EdgeFollowee:
+		m.ClearFollowee()
+		return nil
+	}
+	return fmt.Errorf("unknown FollowsModel unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FollowsModelMutation) ResetEdge(name string) error {
+	switch name {
+	case followsmodel.EdgeFollower:
+		m.ResetFollower()
+		return nil
+	case followsmodel.EdgeFollowee:
+		m.ResetFollowee()
+		return nil
+	}
+	return fmt.Errorf("unknown FollowsModel edge %s", name)
+}
 
 // UserModelMutation represents an operation that mutates the UserModel nodes in the graph.
 type UserModelMutation struct {
@@ -44,6 +704,12 @@ type UserModelMutation struct {
 	profile_image     *string
 	email             *string
 	clearedFields     map[string]struct{}
+	followers         map[int]struct{}
+	removedfollowers  map[int]struct{}
+	clearedfollowers  bool
+	followees         map[int]struct{}
+	removedfollowees  map[int]struct{}
+	clearedfollowees  bool
 	done              bool
 	oldValue          func(context.Context) (*UserModel, error)
 	predicates        []predicate.UserModel
@@ -578,6 +1244,114 @@ func (m *UserModelMutation) ResetEmail() {
 	m.email = nil
 }
 
+// AddFollowerIDs adds the "followers" edge to the FollowsModel entity by ids.
+func (m *UserModelMutation) AddFollowerIDs(ids ...int) {
+	if m.followers == nil {
+		m.followers = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.followers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFollowers clears the "followers" edge to the FollowsModel entity.
+func (m *UserModelMutation) ClearFollowers() {
+	m.clearedfollowers = true
+}
+
+// FollowersCleared reports if the "followers" edge to the FollowsModel entity was cleared.
+func (m *UserModelMutation) FollowersCleared() bool {
+	return m.clearedfollowers
+}
+
+// RemoveFollowerIDs removes the "followers" edge to the FollowsModel entity by IDs.
+func (m *UserModelMutation) RemoveFollowerIDs(ids ...int) {
+	if m.removedfollowers == nil {
+		m.removedfollowers = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.followers, ids[i])
+		m.removedfollowers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFollowers returns the removed IDs of the "followers" edge to the FollowsModel entity.
+func (m *UserModelMutation) RemovedFollowersIDs() (ids []int) {
+	for id := range m.removedfollowers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FollowersIDs returns the "followers" edge IDs in the mutation.
+func (m *UserModelMutation) FollowersIDs() (ids []int) {
+	for id := range m.followers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFollowers resets all changes to the "followers" edge.
+func (m *UserModelMutation) ResetFollowers() {
+	m.followers = nil
+	m.clearedfollowers = false
+	m.removedfollowers = nil
+}
+
+// AddFolloweeIDs adds the "followees" edge to the FollowsModel entity by ids.
+func (m *UserModelMutation) AddFolloweeIDs(ids ...int) {
+	if m.followees == nil {
+		m.followees = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.followees[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFollowees clears the "followees" edge to the FollowsModel entity.
+func (m *UserModelMutation) ClearFollowees() {
+	m.clearedfollowees = true
+}
+
+// FolloweesCleared reports if the "followees" edge to the FollowsModel entity was cleared.
+func (m *UserModelMutation) FolloweesCleared() bool {
+	return m.clearedfollowees
+}
+
+// RemoveFolloweeIDs removes the "followees" edge to the FollowsModel entity by IDs.
+func (m *UserModelMutation) RemoveFolloweeIDs(ids ...int) {
+	if m.removedfollowees == nil {
+		m.removedfollowees = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.followees, ids[i])
+		m.removedfollowees[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFollowees returns the removed IDs of the "followees" edge to the FollowsModel entity.
+func (m *UserModelMutation) RemovedFolloweesIDs() (ids []int) {
+	for id := range m.removedfollowees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FolloweesIDs returns the "followees" edge IDs in the mutation.
+func (m *UserModelMutation) FolloweesIDs() (ids []int) {
+	for id := range m.followees {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFollowees resets all changes to the "followees" edge.
+func (m *UserModelMutation) ResetFollowees() {
+	m.followees = nil
+	m.clearedfollowees = false
+	m.removedfollowees = nil
+}
+
 // Where appends a list predicates to the UserModelMutation builder.
 func (m *UserModelMutation) Where(ps ...predicate.UserModel) {
 	m.predicates = append(m.predicates, ps...)
@@ -897,48 +1671,110 @@ func (m *UserModelMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserModelMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.followers != nil {
+		edges = append(edges, usermodel.EdgeFollowers)
+	}
+	if m.followees != nil {
+		edges = append(edges, usermodel.EdgeFollowees)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *UserModelMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case usermodel.EdgeFollowers:
+		ids := make([]ent.Value, 0, len(m.followers))
+		for id := range m.followers {
+			ids = append(ids, id)
+		}
+		return ids
+	case usermodel.EdgeFollowees:
+		ids := make([]ent.Value, 0, len(m.followees))
+		for id := range m.followees {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserModelMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.removedfollowers != nil {
+		edges = append(edges, usermodel.EdgeFollowers)
+	}
+	if m.removedfollowees != nil {
+		edges = append(edges, usermodel.EdgeFollowees)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *UserModelMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case usermodel.EdgeFollowers:
+		ids := make([]ent.Value, 0, len(m.removedfollowers))
+		for id := range m.removedfollowers {
+			ids = append(ids, id)
+		}
+		return ids
+	case usermodel.EdgeFollowees:
+		ids := make([]ent.Value, 0, len(m.removedfollowees))
+		for id := range m.removedfollowees {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserModelMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.clearedfollowers {
+		edges = append(edges, usermodel.EdgeFollowers)
+	}
+	if m.clearedfollowees {
+		edges = append(edges, usermodel.EdgeFollowees)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *UserModelMutation) EdgeCleared(name string) bool {
+	switch name {
+	case usermodel.EdgeFollowers:
+		return m.clearedfollowers
+	case usermodel.EdgeFollowees:
+		return m.clearedfollowees
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *UserModelMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown UserModel unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *UserModelMutation) ResetEdge(name string) error {
+	switch name {
+	case usermodel.EdgeFollowers:
+		m.ResetFollowers()
+		return nil
+	case usermodel.EdgeFollowees:
+		m.ResetFollowees()
+		return nil
+	}
 	return fmt.Errorf("unknown UserModel edge %s", name)
 }

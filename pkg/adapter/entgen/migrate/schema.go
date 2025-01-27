@@ -8,6 +8,41 @@ import (
 )
 
 var (
+	// FollowsModelsColumns holds the columns for the "follows_models" table.
+	FollowsModelsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "follower_user_id", Type: field.TypeInt64, SchemaType: map[string]string{"mysql": "bigint unsigned"}},
+		{Name: "followee_user_id", Type: field.TypeInt64, SchemaType: map[string]string{"mysql": "bigint unsigned"}},
+	}
+	// FollowsModelsTable holds the schema information for the "follows_models" table.
+	FollowsModelsTable = &schema.Table{
+		Name:       "follows_models",
+		Columns:    FollowsModelsColumns,
+		PrimaryKey: []*schema.Column{FollowsModelsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "follows_models_user_models_followers",
+				Columns:    []*schema.Column{FollowsModelsColumns[3]},
+				RefColumns: []*schema.Column{UserModelsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "follows_models_user_models_followees",
+				Columns:    []*schema.Column{FollowsModelsColumns[4]},
+				RefColumns: []*schema.Column{UserModelsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "followsmodel_follower_user_id_followee_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{FollowsModelsColumns[3], FollowsModelsColumns[4]},
+			},
+		},
+	}
 	// UserModelsColumns holds the columns for the "user_models" table.
 	UserModelsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true, SchemaType: map[string]string{"mysql": "bigint unsigned"}},
@@ -30,9 +65,12 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		FollowsModelsTable,
 		UserModelsTable,
 	}
 )
 
 func init() {
+	FollowsModelsTable.ForeignKeys[0].RefTable = UserModelsTable
+	FollowsModelsTable.ForeignKeys[1].RefTable = UserModelsTable
 }

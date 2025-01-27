@@ -5,7 +5,6 @@ package entgen
 import (
 	"github.com/t-yamakoshi/24-fresh-backend-v2/pkg/adapter/entgen/usermodel"
 	"github.com/t-yamakoshi/24-fresh-backend-v2/schema/db/ent"
-
 )
 
 // The init function reads all schema descriptors with runtime code

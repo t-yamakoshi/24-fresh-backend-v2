@@ -2,6 +2,7 @@ package ent
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -28,5 +29,12 @@ func (UserModel) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		IdMixin{},
 		TimeMixin{},
+	}
+}
+
+func (UserModel) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("followers", FollowsModel.Type),
+		edge.To("followees", FollowsModel.Type),
 	}
 }

@@ -36,8 +36,40 @@ type UserModel struct {
 	// ProfileImage holds the value of the "profile_image" field.
 	ProfileImage string `json:"profile_image,omitempty"`
 	// Email holds the value of the "email" field.
-	Email        string `json:"email,omitempty"`
+	Email string `json:"email,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserModelQuery when eager-loading is set.
+	Edges        UserModelEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// UserModelEdges holds the relations/edges for other nodes in the graph.
+type UserModelEdges struct {
+	// Followers holds the value of the followers edge.
+	Followers []*FollowsModel `json:"followers,omitempty"`
+	// Followees holds the value of the followees edge.
+	Followees []*FollowsModel `json:"followees,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// FollowersOrErr returns the Followers value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserModelEdges) FollowersOrErr() ([]*FollowsModel, error) {
+	if e.loadedTypes[0] {
+		return e.Followers, nil
+	}
+	return nil, &NotLoadedError{edge: "followers"}
+}
+
+// FolloweesOrErr returns the Followees value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserModelEdges) FolloweesOrErr() ([]*FollowsModel, error) {
+	if e.loadedTypes[1] {
+		return e.Followees, nil
+	}
+	return nil, &NotLoadedError{edge: "followees"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -143,6 +175,16 @@ func (um *UserModel) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (um *UserModel) Value(name string) (ent.Value, error) {
 	return um.selectValues.Get(name)
+}
+
+// QueryFollowers queries the "followers" edge of the UserModel entity.
+func (um *UserModel) QueryFollowers() *FollowsModelQuery {
+	return NewUserModelClient(um.config).QueryFollowers(um)
+}
+
+// QueryFollowees queries the "followees" edge of the UserModel entity.
+func (um *UserModel) QueryFollowees() *FollowsModelQuery {
+	return NewUserModelClient(um.config).QueryFollowees(um)
 }
 
 // Update returns a builder for updating this UserModel.
